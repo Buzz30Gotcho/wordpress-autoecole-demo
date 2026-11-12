@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulateur de prix du permis – Démo</title>
+  <style>
+    body { margin: 0; padding: 24px 16px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #222; background: #fff; }
+    .intro { max-width: 520px; margin: 0 auto 8px; }
+    .intro h1 { font-size: 1.6em; margin: 0 0 8px; }
+    .intro p { margin: 0; color: #555; }
+
+    /* ===== Simulateur (même code que dans le bloc « HTML personnalisé » WordPress) ===== */
+    .sim-permis { max-width: 520px; margin: 24px auto; padding: 24px; border: 1px solid #ddd; border-radius: 12px; background: #fafafa; font-size: 16px; box-sizing: border-box; }
+    .sim-permis h3 { margin-top: 0; }
+    .sim-permis label { display: block; margin-bottom: 14px; font-weight: 600; }
+    .sim-permis select, .sim-permis input[type=number] { display: block; width: 100%; margin-top: 6px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+    .sim-permis input[type=range] { width: 100%; margin-top: 8px; }
+    .sim-permis .sim-check { font-weight: 400; }
+    .sim-permis ul { list-style: none; padding: 0; margin: 16px 0; border-top: 1px solid #ddd; }
+    .sim-permis li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid #eee; }
+    .sim-total { font-size: 1.3em; font-weight: 700; margin: 8px 0; }
+    .sim-note { font-size: .85em; color: #666; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Auto-école Démo</h1>
+    <p>Démo du simulateur intégré à un site WordPress (projet personnel, auto-école fictive).</p>
+  </div>
+
+  <div class="sim-permis">
+    <h3>Simulateur de prix du permis</h3>
+    <label>Formule
+      <select id="sim-formule">
+        <option value="b">Permis B</option>
+        <option value="aac">Conduite accompagnée (AAC)</option>
+        <option value="accel">Conduite accélérée</option>
+      </select>
+    </label>
+    <label class="sim-check"><input type="checkbox" id="sim-code"> J'ai déjà le code</label>
+    <label>Heures de conduite en plus : <strong id="sim-h-val">0</strong> h
+      <input type="range" id="sim-heures" min="0" max="20" value="0">
+    </label>
+    <label class="sim-check"><input type="checkbox" id="sim-examen" checked> Accompagnement à l'examen</label>
+    <label>Financement CPF (€)
+      <input type="number" id="sim-cpf" min="0" step="10" value="0">
+    </label>
+    <ul id="sim-detail"></ul>
+    <p class="sim-total">Total estimé : <span id="sim-total"></span></p>
+    <p class="sim-note">Estimation indicative, non contractuelle.</p>
+  </div>
+
+  <script>
+  (function () {
+    // Grille tarifaire : à modifier ici si les prix changent
+    var T = { inscription: 150, code: 30, heure: 55, heures: 20, examen: 60, accel: 300, aac: 120 };
+    var $ = function (id) { return document.getElementById(id); };
+    var eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+    function calculer() {
+      var formule = $('sim-formule').value;
+      var heuresEnPlus = Number($('sim-heures').value) || 0;
+      var cpf = Math.max(0, Number($('sim-cpf').value) || 0);
+
+      var lignes = [["Frais d'inscription", T.inscription]];
+      if (!$('sim-code').checked) lignes.push(['Forfait code', T.code]);
+      lignes.push([T.heures + ' h de conduite', T.heures * T.heure]);
+      if (heuresEnPlus > 0) lignes.push([heuresEnPlus + ' h supplémentaires', heuresEnPlus * T.heure]);
+      if (formule === 'accel') lignes.push(['Supplément accéléré', T.accel]);
+      if (formule === 'aac') lignes.push(['Rendez-vous pédagogiques AAC', T.aac]);
+      if ($('sim-examen').checked) lignes.push(["Accompagnement à l'examen", T.examen]);
+
+      var total = lignes.reduce(function (somme, l) { return somme + l[1]; }, 0);
+      var aide = Math.min(cpf, total);
+      if (aide > 0) lignes.push(['Financement CPF', -aide]);
+
+      $('sim-h-val').textContent = heuresEnPlus;
+      $('sim-detail').innerHTML = lignes.map(function (l) {
+        return '<li><span>' + l[0] + '</span><span>' + eur.format(l[1]) + '</span></li>';
+      }).join('');
+      $('sim-total').textContent = eur.format(total - aide);
+    }
+
+    ['sim-formule', 'sim-code', 'sim-heures', 'sim-examen', 'sim-cpf'].forEach(function (id) {
+      $(id).addEventListener('input', calculer);
+      $(id).addEventListener('change', calculer);
+    });
+    calculer();
+  })();
+  </script>
+</body>
+</html>
