@@ -26,7 +26,7 @@ WordPress · LocalWP · PHP · Forminator · HTML · CSS · JavaScript
 
 | Simulateur (mobile) |
 |---|
-| ![Simulateur sur mobile](captures/simulateur-mobile.png) |
+| ![Simulateur sur mobile](simulateur-mobile.png) |
 
 <!-- Ajouter ici les captures du site : -->
 <!-- ![Page d'accueil](captures/accueil.png) -->
